@@ -1,18 +1,23 @@
-async function fetchFiles() {
-  const res = await fetch("/files");
-  const files = await res.json();
-  document.getElementById("files").innerText = JSON.stringify(files, null, 2);
-}
-
 async function sendMessage() {
-  const textarea = document.getElementById("message");
-  const message = textarea.value.trim();
-  if (!message) return;
-  
-  // الرد التجريبي (echo)
-  alert("AGI says: " + message);
+  const textarea = document.getElementById("userMessage");
+  const msg = textarea.value.trim();
+  if (!msg) return;
+
+  appendMessage(`أنت: ${msg}`);
   textarea.value = "";
-  fetchFiles();
+
+  const res = await fetch("/api/message", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ message: msg })
+  });
+
+  const data = await res.json();
+  appendMessage(data.reply);
 }
 
-fetchFiles();
+function appendMessage(text) {
+  const chatWindow = document.getElementById("chatWindow");
+  chatWindow.innerHTML += text + "<br>";
+  chatWindow.scrollTop = chatWindow.scrollHeight;
+}
