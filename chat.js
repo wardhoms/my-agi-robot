@@ -1,23 +1,33 @@
-async function sendMessage() {
-  const textarea = document.getElementById("userMessage");
-  const msg = textarea.value.trim();
-  if (!msg) return;
+const chatBox = document.getElementById("chatBox");
+const messageInput = document.getElementById("message");
+const sendBtn = document.getElementById("sendBtn");
 
-  appendMessage(`أنت: ${msg}`);
-  textarea.value = "";
+const ws = new WebSocket(`ws://${location.host}/ws`);
 
-  const res = await fetch("/api/message", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ message: msg })
-  });
+ws.onmessage = (event) => {
+  const div = document.createElement("div");
+  div.className = "message agi";
+  div.textContent = event.data;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+};
 
-  const data = await res.json();
-  appendMessage(data.reply);
-}
+sendBtn.onclick = sendMessage;
+messageInput.onkeypress = (e) => {
+  if (e.key === "Enter" && !e.shiftKey) {
+    e.preventDefault();
+    sendMessage();
+  }
+};
 
-function appendMessage(text) {
-  const chatWindow = document.getElementById("chatWindow");
-  chatWindow.innerHTML += text + "<br>";
-  chatWindow.scrollTop = chatWindow.scrollHeight;
+function sendMessage() {
+  const text = messageInput.value.trim();
+  if (!text) return;
+  const div = document.createElement("div");
+  div.className = "message user";
+  div.textContent = text;
+  chatBox.appendChild(div);
+  chatBox.scrollTop = chatBox.scrollHeight;
+  ws.send(text);
+  messageInput.value = "";
 }
